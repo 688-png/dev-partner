@@ -2,3 +2,6 @@ project_id = "akumcbjimhwyywwitjjn"
 
 [functions.generate-structure]
 verify_jwt = false
+
+[functions.project-guidance]
+verify_jwt = false

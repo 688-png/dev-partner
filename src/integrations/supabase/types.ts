@@ -14,7 +14,92 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      projects: {
+        Row: {
+          created_at: string
+          description: string | null
+          end_date: string | null
+          id: string
+          notes: string | null
+          percentage: number
+          roadmap: Json | null
+          stack: Database["public"]["Enums"]["stack_type"]
+          start_date: string | null
+          status: Database["public"]["Enums"]["project_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          percentage?: number
+          roadmap?: Json | null
+          stack: Database["public"]["Enums"]["stack_type"]
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["project_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          percentage?: number
+          roadmap?: Json | null
+          stack?: Database["public"]["Enums"]["stack_type"]
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["project_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          created_at: string
+          done: boolean
+          id: string
+          percentage: number
+          project_id: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          done?: boolean
+          id?: string
+          percentage?: number
+          project_id: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          done?: boolean
+          id?: string
+          percentage?: number
+          project_id?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +108,13 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      project_status: "not-started" | "in-progress" | "complete"
+      stack_type:
+        | "MERN"
+        | "MEAN"
+        | "Next.js"
+        | "React + Supabase"
+        | "Vue + Firebase"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +241,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      project_status: ["not-started", "in-progress", "complete"],
+      stack_type: [
+        "MERN",
+        "MEAN",
+        "Next.js",
+        "React + Supabase",
+        "Vue + Firebase",
+      ],
+    },
   },
 } as const
