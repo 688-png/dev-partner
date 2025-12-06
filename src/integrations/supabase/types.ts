@@ -14,6 +14,89 @@ export type Database = {
   }
   public: {
     Tables: {
+      project_sessions: {
+        Row: {
+          action_plan: string[] | null
+          adjusted_end_date: string | null
+          blockers: string | null
+          calendly_event_id: string | null
+          changes_since_last: string | null
+          completed_at: string | null
+          created_at: string
+          delay_analysis: string | null
+          health_status: string | null
+          id: string
+          needs_review: string | null
+          next_milestone: string | null
+          progress_reported: number | null
+          project_id: string | null
+          recommendations: string[] | null
+          risk_level: string | null
+          scheduled_at: string
+          session_summary: string | null
+          suggested_focus: string | null
+          target_milestone: string | null
+          timeline_alignment: string | null
+          updated_at: string
+        }
+        Insert: {
+          action_plan?: string[] | null
+          adjusted_end_date?: string | null
+          blockers?: string | null
+          calendly_event_id?: string | null
+          changes_since_last?: string | null
+          completed_at?: string | null
+          created_at?: string
+          delay_analysis?: string | null
+          health_status?: string | null
+          id?: string
+          needs_review?: string | null
+          next_milestone?: string | null
+          progress_reported?: number | null
+          project_id?: string | null
+          recommendations?: string[] | null
+          risk_level?: string | null
+          scheduled_at: string
+          session_summary?: string | null
+          suggested_focus?: string | null
+          target_milestone?: string | null
+          timeline_alignment?: string | null
+          updated_at?: string
+        }
+        Update: {
+          action_plan?: string[] | null
+          adjusted_end_date?: string | null
+          blockers?: string | null
+          calendly_event_id?: string | null
+          changes_since_last?: string | null
+          completed_at?: string | null
+          created_at?: string
+          delay_analysis?: string | null
+          health_status?: string | null
+          id?: string
+          needs_review?: string | null
+          next_milestone?: string | null
+          progress_reported?: number | null
+          project_id?: string | null
+          recommendations?: string[] | null
+          risk_level?: string | null
+          scheduled_at?: string
+          session_summary?: string | null
+          suggested_focus?: string | null
+          target_milestone?: string | null
+          timeline_alignment?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_sessions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           created_at: string
