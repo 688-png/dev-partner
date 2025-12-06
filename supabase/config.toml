@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.project-guidance]
 verify_jwt = false
+
+[functions.calendly-webhook]
+verify_jwt = false

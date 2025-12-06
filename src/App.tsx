@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Projects from "./pages/Projects";
 import SingleProject from "./pages/SingleProject";
 import CreateProject from "./pages/CreateProject";
+import CalendlyIntegration from "./pages/CalendlyIntegration";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,11 @@ const App = () => (
             <Route path="/projects/:id" element={
               <ProtectedRoute>
                 <SingleProject />
+              </ProtectedRoute>
+            } />
+            <Route path="/calendly" element={
+              <ProtectedRoute>
+                <CalendlyIntegration />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

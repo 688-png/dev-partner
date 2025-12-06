@@ -6,6 +6,8 @@ import { ProgressBar } from '@/components/ProgressBar';
 import { TaskChecklist } from '@/components/TaskChecklist';
 import { RoadmapTimeline } from '@/components/RoadmapTimeline';
 import { AIGuidancePanel } from '@/components/AIGuidancePanel';
+import { SessionFormDialog } from '@/components/SessionFormDialog';
+import { SessionHistory } from '@/components/SessionHistory';
 import { useProject, useProjects } from '@/hooks/useProjects';
 import { RoadmapItem } from '@/types/project';
 import { Button } from '@/components/ui/button';
@@ -154,6 +156,11 @@ const SingleProject = () => {
             </div>
             
             <div className="flex gap-2">
+              <SessionFormDialog 
+                projectId={project.id}
+                projectTitle={project.title}
+                currentProgress={project.percentage}
+              />
               {isEditing ? (
                 <>
                   <Button size="sm" variant="outline" onClick={() => setIsEditing(false)}>
@@ -215,11 +222,12 @@ const SingleProject = () => {
             />
           </div>
           
-          <div>
+          <div className="space-y-6">
             <RoadmapTimeline 
               roadmap={project.roadmap || []} 
               currentPhase={currentPhase}
             />
+            <SessionHistory projectId={project.id} />
           </div>
         </div>
       </main>
