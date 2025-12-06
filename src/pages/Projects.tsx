@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Plus, FolderKanban, Loader2 } from 'lucide-react';
+import { Plus, FolderKanban, Loader2, Calendar } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { ProgressCard } from '@/components/ProgressCard';
 import { useProjects } from '@/hooks/useProjects';
@@ -46,12 +46,24 @@ const Projects = () => {
               Track progress across all your development projects
             </p>
           </div>
-          <Link to="/projects/new">
-            <Button className="gap-2">
-              <Plus className="w-4 h-4" />
-              New Project
-            </Button>
-          </Link>
+          <div className="flex items-center gap-3">
+            <a 
+              href="https://calendly.com/sirmakau" 
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
+              <Button variant="outline" className="gap-2">
+                <Calendar className="w-4 h-4" />
+                Book a Call
+              </Button>
+            </a>
+            <Link to="/projects/new">
+              <Button className="gap-2">
+                <Plus className="w-4 h-4" />
+                New Project
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {isLoading ? (
