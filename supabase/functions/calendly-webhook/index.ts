@@ -1,9 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { encode as hexEncode } from "https://deno.land/std@0.168.0/encoding/hex.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, calendly-webhook-signature',
 };
 
 interface CalendlyPayload {
@@ -38,6 +39,70 @@ interface ProjectAnalysis {
   next_milestone: string;
 }
 
+// Verify Calendly webhook signature using HMAC-SHA256
+async function verifyCalendlySignature(payload: string, signatureHeader: string, signingKey: string): Promise<boolean> {
+  try {
+    // Calendly signature format: t=timestamp,v1=signature
+    const parts = signatureHeader.split(',');
+    const timestampPart = parts.find(p => p.startsWith('t='));
+    const signaturePart = parts.find(p => p.startsWith('v1='));
+
+    if (!timestampPart || !signaturePart) {
+      console.error('Invalid signature header format');
+      return false;
+    }
+
+    const timestamp = timestampPart.split('=')[1];
+    const signature = signaturePart.split('=')[1];
+
+    // Check timestamp is within 5 minutes to prevent replay attacks
+    const timestampMs = parseInt(timestamp) * 1000;
+    const now = Date.now();
+    const fiveMinutes = 5 * 60 * 1000;
+    
+    if (Math.abs(now - timestampMs) > fiveMinutes) {
+      console.error('Webhook timestamp too old, possible replay attack');
+      return false;
+    }
+
+    // Create the signed payload string: timestamp + "." + payload
+    const signedPayload = `${timestamp}.${payload}`;
+
+    // Compute HMAC-SHA256
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(signingKey),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+
+    const signatureBuffer = await crypto.subtle.sign(
+      'HMAC',
+      key,
+      encoder.encode(signedPayload)
+    );
+
+    const computedSignature = new TextDecoder().decode(hexEncode(new Uint8Array(signatureBuffer)));
+
+    // Compare signatures using timing-safe comparison
+    if (computedSignature.length !== signature.length) {
+      return false;
+    }
+
+    let result = 0;
+    for (let i = 0; i < computedSignature.length; i++) {
+      result |= computedSignature.charCodeAt(i) ^ signature.charCodeAt(i);
+    }
+
+    return result === 0;
+  } catch (error) {
+    console.error('Signature verification error:', error);
+    return false;
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -48,12 +113,42 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const body = await req.json();
-    console.log('Received Calendly webhook:', JSON.stringify(body, null, 2));
+    // Get raw body for signature verification
+    const rawBody = await req.text();
+    const body = JSON.parse(rawBody);
+    
+    console.log('Received webhook request');
 
-    // Handle direct API call for manual session creation
+    // Handle direct API call for manual session creation (skip signature check)
     if (body.type === 'manual_session') {
+      console.log('Processing manual session');
       return await handleManualSession(supabase, body);
+    }
+
+    // For Calendly webhooks, verify signature
+    const signingKey = Deno.env.get('CALENDLY_WEBHOOK_SIGNING_KEY');
+    const signatureHeader = req.headers.get('Calendly-Webhook-Signature');
+
+    if (signingKey && signatureHeader) {
+      const isValid = await verifyCalendlySignature(rawBody, signatureHeader, signingKey);
+      
+      if (!isValid) {
+        console.error('Invalid webhook signature - rejecting request');
+        return new Response(JSON.stringify({ error: 'Invalid signature' }), {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      console.log('Webhook signature verified successfully');
+    } else if (signingKey && !signatureHeader) {
+      // Signing key is configured but no signature provided - reject
+      console.error('Missing Calendly-Webhook-Signature header');
+      return new Response(JSON.stringify({ error: 'Missing signature' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    } else {
+      console.log('No signing key configured - skipping signature verification');
     }
 
     // Handle Calendly webhook
