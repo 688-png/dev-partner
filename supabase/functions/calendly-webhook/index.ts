@@ -365,6 +365,16 @@ Provide analysis in this exact JSON format:
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0]);
+      
+      // Sanitize adjusted_end_date - handle "null" string and invalid dates
+      let adjustedEndDate: string | null = null;
+      if (parsed.adjusted_end_date && 
+          parsed.adjusted_end_date !== 'null' && 
+          parsed.adjusted_end_date !== 'None' &&
+          /^\d{4}-\d{2}-\d{2}$/.test(parsed.adjusted_end_date)) {
+        adjustedEndDate = parsed.adjusted_end_date;
+      }
+      
       return {
         health_status: parsed.health_status || 'at-risk',
         risk_level: parsed.risk_level || 'medium',
@@ -373,7 +383,7 @@ Provide analysis in this exact JSON format:
         recommendations: parsed.recommendations || [],
         suggested_focus: parsed.suggested_focus || '',
         action_plan: parsed.action_plan || [],
-        adjusted_end_date: parsed.adjusted_end_date || null,
+        adjusted_end_date: adjustedEndDate,
         session_summary: parsed.session_summary || '',
         next_milestone: parsed.next_milestone || '',
       };
